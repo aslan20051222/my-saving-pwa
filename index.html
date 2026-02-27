@@ -83,7 +83,6 @@
 
 <script>
     // ==========================================
-    // 👉 就在這裡！請把你找到的 URL 和 Key 貼在下面這兩行的單引號裡面：
     const SUPABASE_URL = 'https://xmxibtstjfeltpfuwkmx.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_YGs8gQsNI3ucGNjdr5c7rw_Zx1jpBH_';
     // ==========================================
@@ -141,4 +140,33 @@
         }
 
         document.getElementById('connectionStatus').innerText = '更新目標中...';
-        await supabase.from('savings_goal').update({ name: newName, target_amount: newAmount }).
+        await supabase.from('savings_goal').update({ name: newName, target_amount: newAmount }).eq('id', 1);
+        fetchData();
+    };
+
+    document.getElementById('saveBtn').onclick = async function() {
+        const amount = parseInt(document.getElementById('depositAmount').value);
+        const user = document.getElementById('userSelect').value;
+
+        if (!amount || amount <= 0) {
+            alert('請輸入大於 0 的金額！'); return;
+        }
+
+        document.getElementById('connectionStatus').innerText = '寫入資料中...';
+        document.getElementById('saveBtn').disabled = true;
+
+        await supabase.from('deposits').insert([
+            { depositor: user, amount: amount }
+        ]);
+
+        document.getElementById('depositAmount').value = '';
+        document.getElementById('saveBtn').disabled = false;
+        fetchData(); 
+    };
+
+    // 👉 就在這裡！我已經幫你把 window.onload 拿掉，改成直接呼叫，這樣擴充功能就干擾不到它了！
+    fetchData();
+</script>
+
+</body>
+</html>
