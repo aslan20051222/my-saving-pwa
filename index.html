@@ -82,10 +82,8 @@
 </div>
 
 <script>
-    // ==========================================
     const SUPABASE_URL = 'https://xmxibtstjfeltpfuwkmx.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_YGs8gQsNI3ucGNjdr5c7rw_Zx1jpBH_';
-    // ==========================================
 
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -164,7 +162,6 @@
         fetchData(); 
     };
 
-    // 👉 就在這裡！我已經幫你把 window.onload 拿掉，改成直接呼叫，這樣擴充功能就干擾不到它了！
     fetchData();
 </script>
 
