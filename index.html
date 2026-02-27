@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>共同存錢系統 1.0</title>
-    <link rel="stylesheet" href="https://unpkg.com/7.css">
+    <title>共同存錢系統 2.0</title>
     <link rel="stylesheet" href="https://unpkg.com/98.css">
     <style>
-        body { background-color: #008080; padding: 20px; font-family: "MS Sans Serif", "Arial", sans-serif; }
-        .window { max-width: 400px; margin: auto; }
-        .progress-bar { height: 20px; border: 1px solid #7b7d7b; background: silver; position: relative; margin-bottom: 10px; }
+        body { background-color: #008080; padding: 20px; font-family: "MS Sans Serif", Arial, sans-serif; display: flex; justify-content: center; }
+        .window { width: 100%; max-width: 450px; }
+        .progress-bar { height: 20px; border: 1px solid #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; background: silver; position: relative; margin: 10px 0; }
         .progress-fill { height: 100%; background: #000080; width: 0%; transition: width 0.3s; }
-        .status-bar { margin-top: 10px; }
+        .stats { margin-bottom: 10px; }
+        .stats p { margin: 5px 0; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="window">
   <div class="title-bar">
-    <div class="title-bar-text">Saving_App.exe</div>
+    <div class="title-bar-text">Saving_App_v2.exe</div>
     <div class="title-bar-controls">
       <button aria-label="Minimize"></button>
       <button aria-label="Maximize"></button>
@@ -26,37 +26,113 @@
     </div>
   </div>
   <div class="window-body">
-    <p>歡迎回來！目前的存錢進度：</p>
     
-    <label>我們的目標：$10,000</label>
-    <div class="progress-bar">
-        <div class="progress-fill" id="progressFill" style="width: 45%;"></div>
+    <fieldset>
+      <legend>⚙️ 目標設定</legend>
+      <div class="field-row">
+        <label for="targetName">目標名稱:</label>
+        <input id="targetName" type="text" value="買車基金" style="width: 150px;"/>
+      </div>
+      <div class="field-row" style="margin-top: 5px;">
+        <label for="targetAmount">目標金額:</label>
+        <input id="targetAmount" type="number" value="100000" style="width: 100px;"/>
+      </div>
+    </fieldset>
+
+    <div style="margin-top: 15px;">
+        <h4 id="displayTargetName" style="margin: 0 0 5px 0;">買車基金</h4>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p style="text-align: right; margin: 0; font-size: 12px;" id="progressText">0 / 100000 (0%)</p>
     </div>
 
-    <div class="field-row-stacked">
-      <label for="amount">存入金額</label>
-      <input id="amount" type="number" placeholder="輸入金額..." />
-    </div>
+    <fieldset style="margin-top: 15px;">
+        <legend>👥 存款明細</legend>
+        <div class="stats">
+            <p>🧑‍💻 你的存款：$<span id="user1Display">0</span></p>
+            <p>👩‍❤️‍👩 伴侶存款：$<span id="user2Display">0</span></p>
+            <p><strong>💰 總計進度：$<span id="totalDisplay">0</span></strong></p>
+        </div>
+    </fieldset>
 
-    <section class="field-row" style="justify-content: flex-end">
-      <button id="saveBtn">確認存入</button>
-    </section>
+    <fieldset style="margin-top: 15px;">
+      <legend>💸 新增存款</legend>
+      <div class="field-row">
+        <label>存入者:</label>
+        <select id="userSelect">
+          <option value="user1">我</option>
+          <option value="user2">伴侶</option>
+        </select>
+      </div>
+      <div class="field-row" style="margin-top: 5px;">
+        <label for="depositAmount">金額:</label>
+        <input id="depositAmount" type="number" placeholder="輸入金額..." style="width: 100px;"/>
+        <button id="saveBtn" style="margin-left: 10px;">確認存入</button>
+      </div>
+    </fieldset>
 
-    <hr />
-    <div class="status-bar">
-      <p class="status-bar-field">使用者：網路管理專員</p>
-      <p class="status-bar-field">連線狀態：離線測試中</p>
+    <div class="status-bar" style="margin-top: 15px;">
+      <p class="status-bar-field">網路管理專員</p>
+      <p class="status-bar-field">未連線至雲端資料庫</p>
     </div>
   </div>
 </div>
 
 <script>
+    // 模擬前端的變數儲存
+    let user1Saved = 0;
+    let user2Saved = 0;
+
+    function updateUI() {
+        // 取得使用者設定的目標與金額
+        const targetName = document.getElementById('targetName').value || '未命名目標';
+        const targetAmount = parseInt(document.getElementById('targetAmount').value) || 1; 
+        
+        const totalSaved = user1Saved + user2Saved;
+        
+        // 計算百分比
+        let percentage = (totalSaved / targetAmount) * 100;
+        if (percentage > 100) percentage = 100;
+
+        // 即時更新畫面文字與進度條
+        document.getElementById('displayTargetName').innerText = targetName;
+        document.getElementById('progressFill').style.width = percentage + '%';
+        document.getElementById('progressText').innerText = `${totalSaved} / ${targetAmount} (${percentage.toFixed(1)}%)`;
+        
+        document.getElementById('user1Display').innerText = user1Saved;
+        document.getElementById('user2Display').innerText = user2Saved;
+        document.getElementById('totalDisplay').innerText = totalSaved;
+    }
+
+    // 當輸入框內容改變時，即時更新畫面
+    document.getElementById('targetName').addEventListener('input', updateUI);
+    document.getElementById('targetAmount').addEventListener('input', updateUI);
+
+    // 按下存錢按鈕的邏輯
     document.getElementById('saveBtn').onclick = function() {
-        const val = document.getElementById('amount').value;
-        if(val) {
-            alert('這是一個前端測試！你打算存入：$' + val + '\n接下來我們會串接 SQL 資料庫來真正儲存這筆錢。');
+        const amount = parseInt(document.getElementById('depositAmount').value);
+        const user = document.getElementById('userSelect').value;
+
+        if (!amount || amount <= 0) {
+            alert('請輸入大於 0 的金額！');
+            return;
         }
+
+        // 判斷是誰存的錢
+        if (user === 'user1') {
+            user1Saved += amount;
+        } else {
+            user2Saved += amount;
+        }
+
+        // 清空輸入框並更新畫面
+        document.getElementById('depositAmount').value = '';
+        updateUI();
     };
+
+    // 網頁載入時先執行一次更新
+    updateUI();
 </script>
 
 </body>
