@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>共同存錢系統 2.0</title>
+    <title>共同存錢系統 3.0 (雲端同步版)</title>
     <link rel="stylesheet" href="https://unpkg.com/98.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background-color: #008080; padding: 20px; font-family: "MS Sans Serif", Arial, sans-serif; display: flex; justify-content: center; }
         .window { width: 100%; max-width: 450px; }
         .progress-bar { height: 20px; border: 1px solid #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; background: silver; position: relative; margin: 10px 0; }
-        .progress-fill { height: 100%; background: #000080; width: 0%; transition: width 0.3s; }
+        .progress-fill { height: 100%; background: #000080; width: 0%; transition: width 0.5s ease-in-out; }
         .stats { margin-bottom: 10px; }
         .stats p { margin: 5px 0; font-size: 14px; }
     </style>
@@ -18,7 +19,7 @@
 
 <div class="window">
   <div class="title-bar">
-    <div class="title-bar-text">Saving_App_v2.exe</div>
+    <div class="title-bar-text">Saving_App_Online.exe</div>
     <div class="title-bar-controls">
       <button aria-label="Minimize"></button>
       <button aria-label="Maximize"></button>
@@ -28,23 +29,24 @@
   <div class="window-body">
     
     <fieldset>
-      <legend>⚙️ 目標設定</legend>
+      <legend>⚙️ 目標設定 (自動儲存至雲端)</legend>
       <div class="field-row">
         <label for="targetName">目標名稱:</label>
-        <input id="targetName" type="text" value="買車基金" style="width: 150px;"/>
+        <input id="targetName" type="text" placeholder="載入中..." style="width: 150px;"/>
       </div>
       <div class="field-row" style="margin-top: 5px;">
         <label for="targetAmount">目標金額:</label>
-        <input id="targetAmount" type="number" value="100000" style="width: 100px;"/>
+        <input id="targetAmount" type="number" placeholder="載入中..." style="width: 100px;"/>
+        <button id="updateGoalBtn" style="margin-left: 10px;">更新目標</button>
       </div>
     </fieldset>
 
     <div style="margin-top: 15px;">
-        <h4 id="displayTargetName" style="margin: 0 0 5px 0;">買車基金</h4>
+        <h4 id="displayTargetName" style="margin: 0 0 5px 0;">載入中...</h4>
         <div class="progress-bar">
             <div class="progress-fill" id="progressFill"></div>
         </div>
-        <p style="text-align: right; margin: 0; font-size: 12px;" id="progressText">0 / 100000 (0%)</p>
+        <p style="text-align: right; margin: 0; font-size: 12px;" id="progressText">0 / 0 (0%)</p>
     </div>
 
     <fieldset style="margin-top: 15px;">
@@ -74,66 +76,69 @@
 
     <div class="status-bar" style="margin-top: 15px;">
       <p class="status-bar-field">網路管理專員</p>
-      <p class="status-bar-field">未連線至雲端資料庫</p>
+      <p class="status-bar-field" id="connectionStatus">連線中...</p>
     </div>
   </div>
 </div>
 
 <script>
-    // 模擬前端的變數儲存
-    let user1Saved = 0;
-    let user2Saved = 0;
+    // ==========================================
+    // 👉 就在這裡！請把你找到的 URL 和 Key 貼在下面這兩行的單引號裡面：
+    const SUPABASE_URL = 'https://xmxibtstjfeltpfuwkmx.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_YGs8gQsNI3ucGNjdr5c7rw_Zx1jpBH_';
+    // ==========================================
 
-    function updateUI() {
-        // 取得使用者設定的目標與金額
-        const targetName = document.getElementById('targetName').value || '未命名目標';
-        const targetAmount = parseInt(document.getElementById('targetAmount').value) || 1; 
-        
-        const totalSaved = user1Saved + user2Saved;
-        
-        // 計算百分比
-        let percentage = (totalSaved / targetAmount) * 100;
-        if (percentage > 100) percentage = 100;
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 即時更新畫面文字與進度條
-        document.getElementById('displayTargetName').innerText = targetName;
-        document.getElementById('progressFill').style.width = percentage + '%';
-        document.getElementById('progressText').innerText = `${totalSaved} / ${targetAmount} (${percentage.toFixed(1)}%)`;
-        
-        document.getElementById('user1Display').innerText = user1Saved;
-        document.getElementById('user2Display').innerText = user2Saved;
-        document.getElementById('totalDisplay').innerText = totalSaved;
+    async function fetchData() {
+        try {
+            document.getElementById('connectionStatus').innerText = '正在同步資料...';
+
+            const { data: goalData } = await supabase.from('savings_goal').select('*').eq('id', 1).single();
+            if (goalData) {
+                document.getElementById('targetName').value = goalData.name;
+                document.getElementById('targetAmount').value = goalData.target_amount;
+                document.getElementById('displayTargetName').innerText = goalData.name;
+            }
+
+            const { data: depositsData } = await supabase.from('deposits').select('*');
+            
+            let user1Total = 0;
+            let user2Total = 0;
+
+            if (depositsData) {
+                depositsData.forEach(record => {
+                    if (record.depositor === 'user1') user1Total += record.amount;
+                    if (record.depositor === 'user2') user2Total += record.amount;
+                });
+            }
+
+            const totalSaved = user1Total + user2Total;
+            const targetAmount = goalData ? goalData.target_amount : 1;
+            
+            let percentage = (totalSaved / targetAmount) * 100;
+            if (percentage > 100) percentage = 100;
+
+            document.getElementById('user1Display').innerText = user1Total;
+            document.getElementById('user2Display').innerText = user2Total;
+            document.getElementById('totalDisplay').innerText = totalSaved;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').innerText = `${totalSaved} / ${targetAmount} (${percentage.toFixed(1)}%)`;
+
+            document.getElementById('connectionStatus').innerText = '🟢 已連線至雲端資料庫';
+        } catch (error) {
+            console.error('讀取錯誤:', error);
+            document.getElementById('connectionStatus').innerText = '🔴 連線失敗';
+        }
     }
 
-    // 當輸入框內容改變時，即時更新畫面
-    document.getElementById('targetName').addEventListener('input', updateUI);
-    document.getElementById('targetAmount').addEventListener('input', updateUI);
+    document.getElementById('updateGoalBtn').onclick = async function() {
+        const newName = document.getElementById('targetName').value;
+        const newAmount = parseInt(document.getElementById('targetAmount').value);
 
-    // 按下存錢按鈕的邏輯
-    document.getElementById('saveBtn').onclick = function() {
-        const amount = parseInt(document.getElementById('depositAmount').value);
-        const user = document.getElementById('userSelect').value;
-
-        if (!amount || amount <= 0) {
-            alert('請輸入大於 0 的金額！');
-            return;
+        if(!newName || !newAmount) {
+            alert('目標名稱和金額不能為空！'); return;
         }
 
-        // 判斷是誰存的錢
-        if (user === 'user1') {
-            user1Saved += amount;
-        } else {
-            user2Saved += amount;
-        }
-
-        // 清空輸入框並更新畫面
-        document.getElementById('depositAmount').value = '';
-        updateUI();
-    };
-
-    // 網頁載入時先執行一次更新
-    updateUI();
-</script>
-
-</body>
-</html>
+        document.getElementById('connectionStatus').innerText = '更新目標中...';
+        await supabase.from('savings_goal').update({ name: newName, target_amount: newAmount }).
