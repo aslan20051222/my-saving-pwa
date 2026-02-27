@@ -85,20 +85,21 @@
     const SUPABASE_URL = 'https://xmxibtstjfeltpfuwkmx.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_YGs8gQsNI3ucGNjdr5c7rw_Zx1jpBH_';
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // 🐛 我剛剛的 Bug 在這裡！現在改名叫 supabaseClient 就不會撞名了！
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function fetchData() {
         try {
             document.getElementById('connectionStatus').innerText = '正在同步資料...';
 
-            const { data: goalData } = await supabase.from('savings_goal').select('*').eq('id', 1).single();
+            const { data: goalData } = await supabaseClient.from('savings_goal').select('*').eq('id', 1).single();
             if (goalData) {
                 document.getElementById('targetName').value = goalData.name;
                 document.getElementById('targetAmount').value = goalData.target_amount;
                 document.getElementById('displayTargetName').innerText = goalData.name;
             }
 
-            const { data: depositsData } = await supabase.from('deposits').select('*');
+            const { data: depositsData } = await supabaseClient.from('deposits').select('*');
             
             let user1Total = 0;
             let user2Total = 0;
@@ -138,7 +139,7 @@
         }
 
         document.getElementById('connectionStatus').innerText = '更新目標中...';
-        await supabase.from('savings_goal').update({ name: newName, target_amount: newAmount }).eq('id', 1);
+        await supabaseClient.from('savings_goal').update({ name: newName, target_amount: newAmount }).eq('id', 1);
         fetchData();
     };
 
@@ -153,7 +154,7 @@
         document.getElementById('connectionStatus').innerText = '寫入資料中...';
         document.getElementById('saveBtn').disabled = true;
 
-        await supabase.from('deposits').insert([
+        await supabaseClient.from('deposits').insert([
             { depositor: user, amount: amount }
         ]);
 
