@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>共同存錢系統 1.0</title>
+    <link rel="stylesheet" href="https://unpkg.com/7.css">
+    <link rel="stylesheet" href="https://unpkg.com/98.css">
+    <style>
+        body { background-color: #008080; padding: 20px; font-family: "MS Sans Serif", "Arial", sans-serif; }
+        .window { max-width: 400px; margin: auto; }
+        .progress-bar { height: 20px; border: 1px solid #7b7d7b; background: silver; position: relative; margin-bottom: 10px; }
+        .progress-fill { height: 100%; background: #000080; width: 0%; transition: width 0.3s; }
+        .status-bar { margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="window">
+  <div class="title-bar">
+    <div class="title-bar-text">Saving_App.exe</div>
+    <div class="title-bar-controls">
+      <button aria-label="Minimize"></button>
+      <button aria-label="Maximize"></button>
+      <button aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <p>歡迎回來！目前的存錢進度：</p>
+    
+    <label>我們的目標：$10,000</label>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 45%;"></div>
+    </div>
+
+    <div class="field-row-stacked">
+      <label for="amount">存入金額</label>
+      <input id="amount" type="number" placeholder="輸入金額..." />
+    </div>
+
+    <section class="field-row" style="justify-content: flex-end">
+      <button id="saveBtn">確認存入</button>
+    </section>
+
+    <hr />
+    <div class="status-bar">
+      <p class="status-bar-field">使用者：網路管理專員</p>
+      <p class="status-bar-field">連線狀態：離線測試中</p>
+    </div>
+  </div>
+</div>
+
+<script>
+    document.getElementById('saveBtn').onclick = function() {
+        const val = document.getElementById('amount').value;
+        if(val) {
+            alert('這是一個前端測試！你打算存入：$' + val + '\n接下來我們會串接 SQL 資料庫來真正儲存這筆錢。');
+        }
+    };
+</script>
+
+</body>
+</html>
